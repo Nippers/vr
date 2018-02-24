@@ -1,0 +1,114 @@
+<html>
+  <head>
+    <script src="https://aframe.io/releases/0.6.0/aframe.min.js"></script>
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.8.5/dist/aframe-extras.min.js"></script>
+    <script>
+
+      AFRAME.registerComponent('spectator',{
+        'schema': {
+          canvas: {
+            type: 'string',
+            default: ''
+          },
+          // desired FPS of spectator dislay
+          fps: {
+            type: 'number',
+            default: '10.0'
+          }
+        },
+        'init': function() {
+          var targetEl = document.querySelector(this.data.canvas);
+
+          this.counter = 0;
+          this.renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true } );
+
+          this.renderer.setPixelRatio( window.devicePixelRatio );
+          this.el.object3DMap.camera.aspect = 1;
+          this.el.object3DMap.camera.updateProjectionMatrix ()
+          this.renderer.setSize( targetEl.offsetWidth, targetEl.offsetHeight );
+
+          // creates spectator canvas
+          targetEl.appendChild(this.renderer.domElement);
+        },
+        'tick': function(time, timeDelta) {
+
+
+
+          var loopFPS = 1000.0 / timeDelta;
+          var hmdIsXFasterThanDesiredFPS = loopFPS / this.data.fps;
+          var renderEveryNthFrame = Math.round(hmdIsXFasterThanDesiredFPS);
+
+          if(this.counter % renderEveryNthFrame === 0){
+            this.render(timeDelta);
+          }
+          this.counter += 1;
+        },
+        'render': function(){
+          this.renderer.render( this.el.sceneEl.object3D , this.el.object3DMap.camera );
+        }
+      });
+
+    </script>
+
+  </head>
+  <body>
+
+            <a-scene stats>
+              <a-assets>
+                <img id="map-tex" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/867169/plan.png" crossorigin>
+              </a-assets>
+              <a-sphere
+                position="0 1.25 -1"
+                radius="1.25"
+                color="white">
+              </a-sphere>
+              <a-sphere
+                position="4 3 -2"
+                radius="1.25"
+                color="orangered">
+              </a-sphere>
+              <a-box
+                position="-1 0.5 1"
+                rotation="0 45 0"
+                width="1" height="5" depth="1"
+                color="blue"></a-box>
+              <a-cylinder
+                position="1 0.75 1"
+                radius="0.5" height="1.5"
+                color="purple"></a-cylinder>
+
+              <a-plane
+                rotation="-90 0 0"
+                width="20" height="4"
+                color="green"></a-plane>
+
+              <a-sky color="lightblue"></a-sky>
+
+              <a-entity>
+                <a-camera id="primaryCamera" position="1 0 3">
+                </a-camera>
+              <a-camera position="0 20 3" active="false">
+                  <a-sphere id="icon" position="0 0 0" radius="0.1" color="purple"></a-sphere>
+              </a-camera>
+              </a-entity>
+
+
+
+                <a-entity camera="active:false; fov:1; far:280" spectator="canvas:#spectatorDiv;" active="false" look-controls="enabled: true"
+                          wasd-controls="enabled: false"
+                          id="secondaryCamera" position="0 300 0" rotation="-90 0 0">
+                </a-entity>
+
+                <a-plane position="0 21 0"
+                rotation="-90 0 0"
+                width="4" height="4"
+                src="#map-tex"></a-plane>
+
+
+            </a-scene>
+
+    <div class="container" id="spectatorDiv">
+    </div>
+
+  </body>
+</html>
